@@ -1,26 +1,21 @@
-import psycopg2
+from flask import Flask, render_template, request, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
 
-conn = None
-cur = None
+app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # For session management
 
-try:
-    conn = psycopg2.connect("postgresql://postgres.txngvsfxynpnqutzjove:dbproject1234@aws-0-us-east-1.pooler.supabase.com:6543/postgres")
-    
-    print("connected")
-    cur = conn.cursor()
+# Connect to Supabase PostgreSQL using SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres.txngvsfxynpnqutzjove:dbproject1234@aws-0-us-east-1.pooler.supabase.com:6543/postgres'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    cur.execute('''
-        INSERT INTO "user" (userID, name, email, password, height, startingWeight, currentWeight, goalWeight)
-        VALUES (1, 'John Doe', 'john@example.com', 123456, 180, 85.0, 80.5, 75.0)
-    ''')
-    conn.commit()
-    print("All sample data inserted successfully!")
+db = SQLAlchemy(app)
 
-except Exception as e:
-    print("Error:", e)
+# Import models after db is initialized
+#from models import User
 
-finally:
-    if cur:
-        cur.close()
-    if conn:
-        conn.close()
+@app.route('/')
+def home():
+    return "Welcome to the Fitness Tracker App (SQLAlchemy version)!"
+
+if __name__ == '__main__':
+    app.run(debug=True)
