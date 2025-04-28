@@ -1,3 +1,4 @@
+-- Drop tables if they already exist
 DROP TABLE IF EXISTS FoodEntry CASCADE;
 DROP TABLE IF EXISTS FoodLog CASCADE;
 DROP TABLE IF EXISTS WeightLog CASCADE;
@@ -5,74 +6,68 @@ DROP TABLE IF EXISTS CaloricPlan CASCADE;
 DROP TABLE IF EXISTS Authentication CASCADE;
 DROP TABLE IF EXISTS "User" CASCADE;
 
-
 -- User table
 CREATE TABLE "User" (
-    user_id INT GENERATED ALWAYS AS IDENTITY,
+    userID SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     height INT,
-    starting_weight FLOAT,
-    current_weight FLOAT,
-    goal_weight FLOAT,
-    PRIMARY KEY (user_id)
+    startingWeight FLOAT,
+    currentWeight FLOAT,
+    goalWeight FLOAT
 );
 
 -- Authentication table
 CREATE TABLE Authentication (
-    auth_id INT GENERATED ALWAYS AS IDENTITY,
-    user_id INT,
-    hashed_password TEXT NOT NULL,
+    authID SERIAL PRIMARY KEY,
+    userID INT,
+    hashedPassword TEXT NOT NULL,
     last_login TIMESTAMP,
-    PRIMARY KEY (auth_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+    FOREIGN KEY (userID) REFERENCES "User"(userID) ON DELETE CASCADE
 );
 
 -- WeightLog table
 CREATE TABLE WeightLog (
-    log_id INT GENERATED ALWAYS AS IDENTITY,
-    user_id INT,
+    logID SERIAL PRIMARY KEY,
+    userID INT,
     weight FLOAT NOT NULL,
     date DATE NOT NULL,
-    PRIMARY KEY (log_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+    FOREIGN KEY (userID) REFERENCES "User"(userID) ON DELETE CASCADE
 );
 
 -- FoodLog table
 CREATE TABLE FoodLog (
-    entry_id INT GENERATED ALWAYS AS IDENTITY,
-    user_id INT,
+    entryID SERIAL PRIMARY KEY,
+    userID INT,
     date DATE NOT NULL,
-    total_calories INT DEFAULT 0,
-    total_fats INT DEFAULT 0,
-    total_carbs INT DEFAULT 0,
-    total_proteins INT DEFAULT 0,
-    PRIMARY KEY (entry_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+    totalCalories INT DEFAULT 0,
+    totalFats INT DEFAULT 0,
+    totalCarbs INT DEFAULT 0,
+    totalProteins INT DEFAULT 0,
+    FOREIGN KEY (userID) REFERENCES "User"(userID) ON DELETE CASCADE
 );
 
 -- FoodEntry table
 CREATE TABLE FoodEntry (
-    id INT GENERATED ALWAYS AS IDENTITY,
-    entry_id INT,
-    food_name VARCHAR(255) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    entryID INT,
+    foodName VARCHAR(255) NOT NULL,
     calories INT DEFAULT 0,
     fats INT DEFAULT 0,
     carbs INT DEFAULT 0,
     proteins INT DEFAULT 0,
     date DATE NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (entry_id) REFERENCES FoodLog(entry_id) ON DELETE CASCADE
+    FOREIGN KEY (entryID) REFERENCES FoodLog(entryID) ON DELETE CASCADE
 );
 
 -- CaloricPlan table
 CREATE TABLE CaloricPlan (
-    plan_id INT GENERATED ALWAYS AS IDENTITY,
-    user_id INT,
-    rec_calories INT DEFAULT 0,
-    rec_carbs INT DEFAULT 0,
-    rec_fats INT DEFAULT 0,
-    goal_type VARCHAR(50),
-    PRIMARY KEY (plan_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id) ON DELETE CASCADE
+    planID SERIAL PRIMARY KEY,
+    userID INT,
+    recCalories INT DEFAULT 0,
+    recProtein INT DEFAULT 0,
+    recCarbs INT DEFAULT 0,
+    recFats INT DEFAULT 0,
+    goalType VARCHAR(50),
+    FOREIGN KEY (userID) REFERENCES "User"(userID) ON DELETE CASCADE
 );
