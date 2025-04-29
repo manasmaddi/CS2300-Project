@@ -1,3 +1,5 @@
+# app.py
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Authentication
@@ -67,6 +69,8 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error_message = None
+    show_back_button = False
+    show_forgot_button = False
 
     if request.method == 'POST':
         email = request.form['email']
@@ -80,10 +84,36 @@ def login():
                 session['userid'] = user.userid
                 session['name'] = user.name
                 return redirect(url_for('dashboard'))
+            else:
+                error_message = "Incorrect password. Please try again."
+                show_forgot_button = True
+        else:
+            error_message = "User not found. Please sign up."
+            show_back_button = True
 
-        error_message = "Invalid email or password. Please try again."
+    return render_template('login.html', error_message=error_message, show_back_button=show_back_button, show_forgot_button=show_forgot_button)
 
-    return render_template('login.html', error_message=error_message)
+    
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        new_password = request.form['new_password']
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            auth = Authentication.query.filter_by(userid=user.userid).first()
+            if auth:
+                auth.hashedpassword = generate_password_hash(new_password, method='pbkdf2:sha256')
+                db.session.commit()
+                return redirect(url_for('login'))
+            else:
+                return "Authentication not found for user."
+        else:
+            return "User with this email does not exist."
+
+    return render_template('forgot_password.html')
+
 
 @app.route('/dashboard')
 def dashboard():

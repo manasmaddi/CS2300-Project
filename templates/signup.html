@@ -3,84 +3,96 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sign Up</title>
+    <title>Sign Up - FitLife Tracker</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
         }
         .container {
             background-color: white;
-            padding: 30px 40px;
+            padding: 40px 50px;
+            margin: 50px auto;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             width: 350px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         h2 {
-            text-align: center;
             margin-bottom: 20px;
             color: #333;
         }
-        label {
-            font-size: 14px;
-            color: #555;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
+        input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 20px;
+            margin: 8px 0 16px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-sizing: border-box;
         }
         button {
             width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            border: none;
-            border-radius: 5px;
+            background-color: #5cb85c;
             color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #4cae4c;
         }
-        p {
-            text-align: center;
+        .login-link {
             margin-top: 15px;
             font-size: 14px;
+            color: #555;
         }
-        a {
+        .login-link a {
             color: #4CAF50;
             text-decoration: none;
+            font-weight: bold;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
+
+    <div class="header">
+        FitLife Tracker
+    </div>
+
     <div class="container">
-        <h2>Sign Up</h2>
-        <form method="POST">
-            <label>Name:</label>
-            <input type="text" name="name" required>
+        <h2>Create Account</h2>
 
-            <label>Email:</label>
-            <input type="email" name="email" required>
-
-            <label>Password:</label>
-            <input type="password" name="password" required>
-
+        <form action="{{ url_for('signup') }}" method="POST">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Sign Up</button>
         </form>
 
-        <p>Already have an account? <a href="#">Login</a></p>
+        <div class="login-link">
+            Already have an account? 
+            <a href="{{ url_for('login') }}">Login</a>
+        </div>
     </div>
+
 </body>
 </html>
