@@ -1,35 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Authentication
-from sqlalchemy import text
 import datetime
 import random
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-# Correct database connection
+# Database connection
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres.txngvsfxynpnqutzjove:dbproject1234@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
 # Test database connection
-with app.app_context():
+def test_database_conc():
     try:
-        db.session.execute(text('SELECT 1'))
+        db.session.connection()
         print('Database connected successfully.')
     except Exception as e:
-        print('Failed to connect to the database.')
-        print(str(e))
-
-# Create tables
-with app.app_context():
-    db.create_all()
+        print('Failed to connect to the database.', e)
 
 @app.route('/')
 def home():
-    return redirect(url_for('signup'))
+    return render_template('welcome.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -40,12 +34,14 @@ def signup():
 
         user = User.query.filter_by(email=email).first()
         if user:
-            return "User already exists. Please try login."
+            session['signup_error'] = 'Already signed up. Please login.'
+            return redirect(url_for('login'))
+
         new_user = User(
-            userid=random.randint(1, 1000000),  # generate random userid
+            userid=random.randint(1, 1000000),
             name=name,
             email=email,
-            password=0,  # placeholder, no password column used here
+            password=0,  # Placeholder, real password stored separately
             height=0,
             startingweight=0.0,
             currentweight=0.0,
@@ -57,18 +53,48 @@ def signup():
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         new_auth = Authentication(
-        userid=new_user.userid,
-        hashedpassword=hashed_password,  # this will now be long text
-        lastlogin=None
+            userid=new_user.userid,
+            hashedpassword=hashed_password,
+            last_login=None
         )
-        
         db.session.add(new_auth)
         db.session.commit()
 
-        return "Signup successful! "
+        return redirect(url_for('login'))
 
     return render_template('signup.html')
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error_message = None
+
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        user = User.query.filter_by(email=email).first()
+
+        if user:
+            auth = Authentication.query.filter_by(userid=user.userid).first()
+            if auth and check_password_hash(auth.hashedpassword, password):
+                session['userid'] = user.userid
+                session['name'] = user.name
+                return redirect(url_for('dashboard'))
+
+        error_message = "Invalid email or password. Please try again."
+
+    signup_error = session.pop('signup_error', None)
+    return render_template('login.html', error_message=error_message, signup_error=signup_error)
+
+@app.route('/dashboard')
+def dashboard():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    name = session.get('name')
+    return render_template('dashboard.html', name=name)
 
 if __name__ == '__main__':
+    with app.app_context():
+        test_database_conc()
     app.run(debug=True)
