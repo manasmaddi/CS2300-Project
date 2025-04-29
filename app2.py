@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
 # Update with your correct database URL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:dbproject1234@db.txngvsfxynpnqutzjove.supabase.co:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres.txngvsfxynpnqutzjove:dbproject1234@aws-0-us-east-1.pooler.supabase.com:5432/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
