@@ -3,7 +3,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Authentication
-import datetime
+from datetime import datetime
 import random
 
 app = Flask(__name__)
@@ -81,6 +81,10 @@ def login():
         if user:
             auth = Authentication.query.filter_by(userid=user.userid).first()
             if auth and check_password_hash(auth.hashedpassword, password):
+                # Update last_login time
+                auth.last_login = datetime.now()
+                db.session.commit()
+
                 session['userid'] = user.userid
                 session['name'] = user.name
                 return redirect(url_for('dashboard'))
