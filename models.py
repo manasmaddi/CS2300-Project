@@ -3,12 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
 class User(db.Model):
-    __tablename__ = 'User'  # exactly small letter 'user'
+    __tablename__ = 'User'   # <-- Capital U because your table is "User" in database
 
     userid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
-    email = db.Column(db.String(30), nullable=False)
+    email = db.Column(db.String(30), nullable=False, unique=True)
     password = db.Column(db.Integer, nullable=False)
     height = db.Column(db.Integer, nullable=False)
     startingweight = db.Column(db.Float, nullable=False)
@@ -16,12 +20,12 @@ class User(db.Model):
     goalweight = db.Column(db.Float, nullable=False)
 
 class Authentication(db.Model):
-    __tablename__ = 'Authentication'
+    __tablename__ = 'Authentication'  # also matches your table
 
     authid = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, db.ForeignKey('user.userid', ondelete='CASCADE'))
-    hashedpassword = db.Column(db.Integer, nullable=False)
-    last_login = db.Column(db.DateTime)  
+    userid = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
+    hashedpassword = db.Column(db.Text, nullable=False)   # <-- change to Text because hashed password is long
+    last_login = db.Column(db.DateTime)  # correct field now
 
 class WeightLog(db.Model):
     __tablename__ = 'weightLog'

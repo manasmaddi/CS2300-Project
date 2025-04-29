@@ -41,7 +41,7 @@ def signup():
             userid=random.randint(1, 1000000),
             name=name,
             email=email,
-            password=0,  # Placeholder, real password stored separately
+            password=0,
             height=0,
             startingweight=0.0,
             currentweight=0.0,
@@ -83,8 +83,7 @@ def login():
 
         error_message = "Invalid email or password. Please try again."
 
-    signup_error = session.pop('signup_error', None)
-    return render_template('login.html', error_message=error_message, signup_error=signup_error)
+    return render_template('login.html', error_message=error_message)
 
 @app.route('/dashboard')
 def dashboard():
