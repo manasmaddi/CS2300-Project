@@ -2,7 +2,10 @@
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Authentication
+#from models import db, User, Authentication, WeightLog, FoodLog, FoodEntry, CaloricPlan
+from models import db, User, Authentication, WeightLog, FoodLog, FoodEntry, CaloricPlan
+from sqlalchemy import text
+
 from datetime import datetime
 import random
 
@@ -123,66 +126,92 @@ def forgot_password():
 def dashboard():
     if 'userid' not in session:
         return redirect(url_for('login'))
-
+    
     name = session.get('name')
     return render_template('dashboard.html', name=name)
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
-    user_id = session.get('userid')
     if 'userid' not in session:
         return redirect(url_for('login'))
-    
-    user = User.query.filter_by(userid=user_id).first()
-    if not user:
-        return "User not found."
-    
+
+    uid = session['userid']
+
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        startingWeight = request.form['startingWeight']
-        height = request.form['height']
+        try:
+            db.session.execute(
+                text("""
+                    UPDATE "User"
+                    SET name = :name,
+                        email = :email,
+                        height = :height,
+                        startingWeight = :startingWeight,
+                        currentWeight = :currentWeight,
+                        goalWeight = :goalWeight
+                    WHERE userID = :uid
+                """),
+                {
+                    "name": request.form['name'],
+                    "email": request.form['email'],
+                    "height": int(request.form['height']),
+                    "startingWeight": float(request.form['startingWeight']),
+                    "currentWeight": float(request.form['currentWeight']),
+                    "goalWeight": float(request.form['goalWeight']),
+                    "uid": uid
+                }
+            )
+            db.session.commit()
 
-        if name:
-            user.name = name
-        if email:
-            user.email = email
-        if startingWeight:
-            user.startingweight = float(startingWeight)
-        if height:
-            user.height = float(height)
-        
-        db.session.commit()
+            user = db.session.execute(
+                text('SELECT * FROM "User" WHERE userID = :uid'),
+                {"uid": uid}
+            ).fetchone()
 
-        return redirect(url_for('dashboard'))
+            return render_template('settings.html', user=user, success=True)
+
+        except Exception as e:
+            return f"Error updating settings: {str(e)}"
+
+    # GET: fetch user data
+    user = db.session.execute(
+        text('SELECT * FROM "User" WHERE userID = :uid'),
+        {"uid": uid}
+    ).fetchone()
 
     return render_template('settings.html', user=user)
 
-@app.route('/caloricPlan', methods=['GET', 'POST'])
-def caloricPlan():
-    return render_template('caloricPlan.html')
 
-@app.route('/foodEntry', methods=['GET', 'POST'])
-def foodEntry():
-    return render_template('foodEntry.html')
 
-@app.route('/foodLog')
-def foodLog():
-    return render_template('foodLog.html')
+@app.route('/add-weight-log', methods=['GET', 'POST'])
+def add_weight_log():
 
-@app.route('/weightEntry', methods=['GET', 'POST'])
-def weightEntry():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        try:
+            new_log = WeightLog(
+                logid=random.randint(1, 1000000),  
+                userid=session['userid'],
+                weight=float(request.form['weight']),
+                date=request.form['date']
+            )
+            db.session.add(new_log)
+            db.session.commit()
+            #return redirect(url_for('dashboard'))
+            #return redirect(url_for('dashboard'))
+            return render_template('weightEntry.html', success = True)
+        except Exception as e:
+            return f"Error adding weight log: {str(e)}"
+
     return render_template('weightEntry.html')
 
-@app.route('/weightLog')
-def weightLog():
-    return render_template('weightLog.html')
 
-@app.route('/statistics', methods=['GET', 'POST'])
-def statistics():
-    return render_template('statistics.html')
+
 
 if __name__ == '__main__':
     with app.app_context():
         test_database_conc()
     app.run(debug=True)
+
+
