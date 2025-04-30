@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 #from models import db, User, Authentication, WeightLog, FoodLog, FoodEntry, CaloricPlan
@@ -205,6 +203,70 @@ def add_weight_log():
             return f"Error adding weight log: {str(e)}"
 
     return render_template('weightEntry.html')
+
+from datetime import date
+from sqlalchemy import text
+
+@app.route('/add-food-entry', methods=['GET', 'POST'])
+def add_food_entry():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    uid = session['userid']
+    today = date.today()
+
+    if request.method == 'POST':
+        # 1. Get form values
+        foodname = request.form['foodname']
+        calories = int(request.form['calories'])
+        fats = int(request.form['fats'])
+        carbs = int(request.form['carbs'])
+        proteins = int(request.form['proteins'])
+
+        # 2. Check if FoodLog exists
+        result = db.session.execute(
+            text("""
+                SELECT entryid FROM "foodlog"
+                WHERE userid = :uid AND date = :today
+            """),
+            {"uid": uid, "today": today}
+        ).fetchone()
+
+        if result:
+            entryid = result.entryid
+        else:
+            # 3. Insert new FoodLog for today
+            new_log = db.session.execute(
+                text("""
+                    INSERT INTO "foodlog"(userid, date)
+                    VALUES (:uid, :today)
+                    RETURNING entryid
+                """),
+                {"uid": uid, "today": today}
+            )
+            entryid = new_log.fetchone().entryid
+
+        # 4. Insert food into FoodEntry
+        db.session.execute(
+            text("""
+                INSERT INTO "foodentry"(entryid, foodname, date, calories, fats, carbs, proteins)
+                VALUES (:eid, :name, :date, :cal, :fat, :carb, :pro)
+            """),
+            {
+                "eid": entryid,
+                "name": foodname,
+                "date": today,
+                "cal": calories,
+                "fat": fats,
+                "carb": carbs,
+                "pro": proteins
+            }
+        )
+
+        db.session.commit()
+        return render_template("foodEntry.html", success=True)
+
+    return render_template("foodEntry.html")
 
 
 
