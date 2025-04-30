@@ -42,18 +42,53 @@
         button:hover {
             background-color: #45a049;
         }
+        .success {
+            color: green;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        label {
+            text-align: left;
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #555;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Settings and Metrics</h2>
+
+        {% if success %}
+            <p class="success">✅ Profile updated!</p>
+        {% endif %}
+
         <form method="POST">
-            <input type="text" name="name" placeholder="Name">
-            <input type="email" email="email" placeholder="Email">
-            <input type="float" startingWeight="startingWeight" placeholder="Starting Weight in (lbs)">
-            <input type="float" height="height" placeholder="Height in (cm)">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" value="{{ user.name }}">
+
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" value="{{ user.email }}">
+
+            <label for="height">Height (cm):</label>
+            <input type="number" name="height" id="height" value="{{ user.height }}">
+
+            <label for="startingWeight">Starting Weight (lbs):</label>
+            <input type="number" name="startingWeight" id="startingWeight" value="{{ user.startingweight }}">
+
+            <label for="currentWeight">Current Weight (lbs):</label>
+            <input type="number" name="currentWeight" id="currentWeight" value="{{ user.currentweight }}">
+
+            <label for="goalWeight">Goal Weight (lbs):</label>
+            <input type="number" name="goalWeight" id="goalWeight" value="{{ user.goalweight }}">
+
             <button type="submit">Save</button>
         </form>
+
+        <a href="{{ url_for('dashboard') }}">
+            <button type="button">Back to Dashboard</button>
+        </a>
     </div>
 </body>
 </html>
