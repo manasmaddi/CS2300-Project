@@ -3,12 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class User(db.Model):
-    __tablename__ = 'User'   # IMPORTANT: capital 'U' matches your database table
+    __tablename__ = 'User'   
 
     userid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
     email = db.Column(db.String(30), nullable=False)
-    password = db.Column(db.Integer, nullable=False)  # (Not actually used — you store password in Authentication)
+    password = db.Column(db.Integer, nullable=False)  
     height = db.Column(db.Integer, nullable=False)
     startingweight = db.Column(db.Float, nullable=False)
     currentweight = db.Column(db.Float, nullable=False)
@@ -19,11 +19,11 @@ class Authentication(db.Model):
 
     authid = db.Column(db.Integer, primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
-    hashedpassword = db.Column(db.String, nullable=False)   # Correct: must be String
+    hashedpassword = db.Column(db.String, nullable=False)   
     last_login = db.Column(db.DateTime)   # Correct: underscore!
 
 class WeightLog(db.Model):
-    __tablename__ = 'weightLog'
+    __tablename__ = 'weightlog'
 
     logid = db.Column(db.Integer, primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
@@ -55,10 +55,10 @@ class FoodEntry(db.Model):
 class CaloricPlan(db.Model):
     __tablename__ = 'caloricPlan'
 
-    planid = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
-    reccalories = db.Column(db.Integer)
-    recprotein = db.Column(db.Integer)
-    reccarbs = db.Column(db.Integer)
-    recfats = db.Column(db.Integer)
-    goaltype = db.Column(db.Integer)
+    planID = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
+    recCalories = db.Column(db.Integer)
+    recProtein = db.Column(db.Integer)
+    recCarbs = db.Column(db.Integer)
+    recFats = db.Column(db.Integer)
+    goalType = db.Column(db.String(50))
