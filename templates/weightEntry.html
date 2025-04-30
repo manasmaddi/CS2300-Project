@@ -20,21 +20,24 @@
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             width: 350px;
+            text-align: center;
         }
         h2 {
-            text-align: center;
             margin-bottom: 20px;
             color: #333;
         }
         label {
-            font-size: 16px;
-            color: #000000;
+            font-size: 14px;
+            color: #555;
+            display: block;
+            margin-top: 10px;
         }
-        input, button {
-            width: 90%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 5px;
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 4px;
             border: 1px solid #ccc;
         }
         button {
@@ -46,22 +49,38 @@
             color: white;
             font-size: 16px;
             cursor: pointer;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #45a049;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Weight Entry</h2>
-        <form method="POST">
-            <label>Date:</label>
-            <input type="date" name="date" required>
-            <input type="float" name="weight" placeholder="Weight(lbs)" required><br>
 
-            <button type="submit">Add</button>
-        </form>
+        {% if success %}
+            <p class="success">✅ Weight logged successfully!</p>
+            <a href="{{ url_for('dashboard') }}">
+                <button type="button">Return to Dashboard</button>
+            </a>
+        {% else %}
+            <form method="POST" action="/add-weight-log">
+                <label>Date:</label>
+                <input type="date" name="date" required>
+
+                <label>Weight:</label>
+                <input type="number" name="weight" required>
+
+                <button type="submit">Add</button>
+            </form>
+        {% endif %}
     </div>
 </body>
 </html>
