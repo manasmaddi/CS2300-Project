@@ -24,11 +24,21 @@
         h2 {
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+            color: #000000;
         }
         label {
-            font-size: 14px;
-            color: #555;
+            font-size: 16px;
+            color: #000000;
+        }
+        input[type="text"],
+        input[type="float"],
+        input[type="range"],
+        button {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
         button {
             width: 100%;
@@ -54,14 +64,13 @@
                 <input type="radio" name="goal" value="loss"> Loss
                 <input type="radio" name="goal" value="gain"> Gain
                 <input type="radio" name="goal" value="maintain"> Maintain
+            </div><br>
+            <input type="float" name="goal_weight" placeholder="Goal Weight (lbs)" required><br>
+            <div>
+                <br><label for="weekly_diff">Weight (lb) Difference Per Week:</label>
+                <span id="rangeValue">1.2</span> lb/week
+                <input type="range" id="weekly_diff" name="weekly_diff" min="0" max="2.5" step="0.1" required oninput="rangeValue.innerText = this.value">
             </div>
-
-            <label>Goal Weight:</label>
-            <input type="number" name="goal_weight" required>
-
-            <label>Weight(lb) Difference Per Week:</label>
-            <input type="range" min="0" max="2.5" step="0.1" name="weekly_diff" required>
-
             <button type="submit">Set Plan</button>
         </form>
     </div>

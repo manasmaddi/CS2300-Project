@@ -1,0 +1,85 @@
+<!-- templates/statistics.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Statistics</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    margin: 0;
+}
+.container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 700px;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+th, td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+}
+.charts {
+    display: flex;
+    justify-content: space-between;
+}
+.chart {
+    width: 45%;
+    text-align: center;
+}
+.chart img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+    <h2>Statistics</h2>
+    <table>
+        <tr>
+            <th>Total Weight Change</th>
+            <th>Caloric Average</th>
+            <th>Weight Change per Week</th>
+            <th>New Recommended Calories</th>
+        </tr>
+        <tr>
+            <td>{{ total_weight_change }}</td>
+            <td>{{ caloric_average }}</td>
+            <td>{{ weight_change_per_week }}</td>
+            <td>{{ new_recommended_calories }}</td>
+    </table>
+    <div class="charts">
+        <div class="chart">
+            <h3>Weight Trend</h3>
+
+
+        </div>
+        <div class="chart">
+            <h3>Caloric Trend</h3>
+
+            
+        </div>
+    </div>
+    </div>
+</body>
+</html>

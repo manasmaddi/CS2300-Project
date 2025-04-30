@@ -30,6 +30,13 @@
             font-size: 14px;
             color: #555;
         }
+        input, button {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
         button {
             width: 100%;
             padding: 10px;
@@ -49,20 +56,11 @@
     <div class="container">
         <h2>Food Entry</h2>
         <form method="POST">
-            <label>Food:</label>
-            <input type="text" name="food">
-
-            <label>Calories:</label>
-            <input type="number" name="calories" required>
-
-            <label>Protein:</label>
-            <input type="number" name="protein">
-
-            <label>Fats:</label>
-            <input type="number" name="fats">
-
-            <label>Carbs:</label>
-            <input type="number" name="carbs">
+            <input type="text" name="foodName" placeholder="Food Name" required><br>
+            <input type="number" name="calories" placeholder="Calories(kcal)" required><br>
+            <input type="number" name="protein" placeholder="Protein(g)"><br>
+            <input type="number" name="fats" placeholder="Fats(g)"><br>
+            <input type="number" name="carbs" placeholder="Carbs(g)"><br>
 
             <button type="submit">Add</button>
         </form>

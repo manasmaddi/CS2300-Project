@@ -39,6 +39,14 @@
         button:hover {
             background-color: #5a6268;
         }
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+        .button-row button {
+            flex: 1;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -46,8 +54,14 @@
         <h2>Welcome, {{ name }}!</h2>
         <button onclick="window.location.href='/settings'">Settings and Metrics</button>
         <button onclick="window.location.href='/caloricPlan'">Caloric Plan</button>
-        <button onclick="window.location.href='/food_log'">Food Log</button>
-        <button onclick="window.location.href='/weight_entry'">Weight Entry</button>
+        <div class="button-row">
+            <button onclick="window.location.href='/foodEntry'">Food Entry</button>
+            <button onclick="window.location.href='/foodLog'">Food Log</button>
+        </div>
+        <div class="button-row">
+            <button onclick="window.location.href='/weightEntry'">Weight Entry</button>
+            <button onclick="window.location.href='/weightLog'">Weight Log</button>
+        </div>
         <button onclick="window.location.href='/statistics'">Statistics</button>
     </div>
 </body>

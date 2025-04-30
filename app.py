@@ -162,6 +162,26 @@ def settings():
 def caloricPlan():
     return render_template('caloricPlan.html')
 
+@app.route('/foodEntry', methods=['GET', 'POST'])
+def foodEntry():
+    return render_template('foodEntry.html')
+
+@app.route('/foodLog')
+def foodLog():
+    return render_template('foodLog.html')
+
+@app.route('/weightEntry', methods=['GET', 'POST'])
+def weightEntry():
+    return render_template('weightEntry.html')
+
+@app.route('/weightLog')
+def weightLog():
+    return render_template('weightLog.html')
+
+@app.route('/statistics', methods=['GET', 'POST'])
+def statistics():
+    return render_template('statistics.html')
+
 if __name__ == '__main__':
     with app.app_context():
         test_database_conc()
