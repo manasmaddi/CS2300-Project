@@ -127,6 +127,41 @@ def dashboard():
     name = session.get('name')
     return render_template('dashboard.html', name=name)
 
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    user_id = session.get('userid')
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.filter_by(userid=user_id).first()
+    if not user:
+        return "User not found."
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        startingWeight = request.form['startingWeight']
+        height = request.form['height']
+
+        if name:
+            user.name = name
+        if email:
+            user.email = email
+        if startingWeight:
+            user.startingweight = float(startingWeight)
+        if height:
+            user.height = float(height)
+        
+        db.session.commit()
+
+        return redirect(url_for('dashboard'))
+
+    return render_template('settings.html', user=user)
+
+@app.route('/caloricPlan', methods=['GET', 'POST'])
+def caloricPlan():
+    return render_template('caloricPlan.html')
+
 if __name__ == '__main__':
     with app.app_context():
         test_database_conc()
