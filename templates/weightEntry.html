@@ -71,12 +71,11 @@
                 <button type="button">Return to Dashboard</button>
             </a>
         {% else %}
-            <form method="POST" action="/add-weight-log">
+            <form method="POST" action="/add-weight-entry">
                 <label>Date:</label>
                 <input type="date" name="date" required>
 
-                <label>Weight:</label>
-                <input type="number" name="weight" required>
+            <input type="float" name="weight" placeholder="Weight(lbs)" required><br>
 
                 <button type="submit">Add</button>
             </form>
