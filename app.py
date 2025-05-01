@@ -48,7 +48,9 @@ def signup():
             height=0,
             startingweight=0.0,
             currentweight=0.0,
-            goalweight=0.0
+            goalweight=0.0,
+            age = None,
+            gender = 'none',
         )
         db.session.add(new_user)
         db.session.commit()

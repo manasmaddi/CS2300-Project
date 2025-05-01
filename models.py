@@ -13,6 +13,8 @@ class User(db.Model):
     startingweight = db.Column(db.Float, nullable=False)
     currentweight = db.Column(db.Float, nullable=False)
     goalweight = db.Column(db.Float, nullable=False)
+    age = db.Column(db.Integer)
+    gender = db.Column(db.String)
 
 class Authentication(db.Model):
     __tablename__ = 'Authentication'
