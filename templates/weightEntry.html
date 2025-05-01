@@ -75,10 +75,13 @@
                 <label>Date:</label>
                 <input type="date" name="date" required>
 
-            <input type="float" name="weight" placeholder="Weight(lbs)" required><br>
+                <input type="float" name="weight" placeholder="Weight(lbs)" required><br>
 
                 <button type="submit">Add</button>
             </form>
+            <a href="{{ url_for('dashboard') }}">
+                <button type="button">Back to Dashboard</button>
+            </a>
         {% endif %}
     </div>
 </body>

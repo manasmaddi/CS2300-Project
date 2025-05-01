@@ -54,32 +54,37 @@ th, td {
 </head>
 <body>
     <div class="container">
-    <h2>Statistics</h2>
-    <table>
-        <tr>
-            <th>Total Weight Change</th>
-            <th>Caloric Average</th>
-            <th>Weight Change per Week</th>
-            <th>New Recommended Calories</th>
-        </tr>
-        <tr>
-            <td>{{ total_weight_change }}</td>
-            <td>{{ caloric_average }}</td>
-            <td>{{ weight_change_per_week }}</td>
-            <td>{{ new_recommended_calories }}</td>
-    </table>
-    <div class="charts">
-        <div class="chart">
-            <h3>Weight Trend</h3>
+        <h2>Statistics</h2>
+        <table>
+            <tr>
+                <th>Total Weight Change</th>
+                <th>Caloric Average</th>
+                <th>Weight Change per Week</th>
+                <th>New Recommended Calories</th>
+            </tr>
+            <tr>
+                <td>{{ total_weight_change }}</td>
+                <td>{{ caloric_average }}</td>
+                <td>{{ weight_change_per_week }}</td>
+                <td>{{ new_recommended_calories }}</td>
+        </table>
+        <div class="charts">
+            <div class="chart">
+                <h3>Weight Trend</h3>
 
 
+            </div>
+            <div class="chart">
+                <h3>Caloric Trend</h3>
+
+                
+            </div>
         </div>
-        <div class="chart">
-            <h3>Caloric Trend</h3>
-
-            
-        </div>
-    </div>
+        <a href="{{ url_for('dashboard') }}">
+            <button type="button">Back to Dashboard</button>        
+            <a href="{{ url_for('dashboard') }}">
+                <button type="button">Back to Dashboard</button>
+            </a>
     </div>
 </body>
 </html>
