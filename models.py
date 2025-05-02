@@ -33,7 +33,7 @@ class WeightLog(db.Model):
     date = db.Column(db.Date)
 
 class FoodLog(db.Model):
-    __tablename__ = 'foodLog'
+    __tablename__ = 'foodlog'
 
     entryid = db.Column(db.Integer, primary_key=True)
     userid = db.Column(db.Integer, db.ForeignKey('User.userid', ondelete='CASCADE'))
@@ -44,7 +44,7 @@ class FoodLog(db.Model):
     totalproteins = db.Column(db.Integer)
 
 class FoodEntry(db.Model):
-    __tablename__ = 'foodEntry'
+    __tablename__ = 'foodentry'
 
     entryid = db.Column(db.Integer, db.ForeignKey('foodLog.entryid', ondelete='CASCADE'), primary_key=True)
     foodname = db.Column(db.String(40))
