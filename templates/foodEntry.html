@@ -18,55 +18,73 @@
             background-color: white;
             padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             width: 350px;
+            text-align: center;
         }
         h2 {
-            text-align: center;
             margin-bottom: 20px;
             color: #333;
         }
         label {
-            font-size: 14px;
+            display: block;
+            text-align: left;
+            font-weight: bold;
+            margin-top: 10px;
             color: #555;
         }
         input, button {
-            width: 90%;
+            width: 100%;
             padding: 10px;
-            margin: 8px 0;
+            margin-top: 5px;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
         button {
-            width: 100%;
-            padding: 10px;
             background-color: #4CAF50;
-            border: none;
-            border-radius: 5px;
             color: white;
-            font-size: 16px;
             cursor: pointer;
+            margin-top: 15px;
         }
         button:hover {
             background-color: #45a049;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Food Entry</h2>
-        <form method="POST">
-            <input type="text" name="foodName" placeholder="Food Name" required><br>
-            <input type="number" name="calories" placeholder="Calories(kcal)" required><br>
-            <input type="number" name="protein" placeholder="Protein(g)"><br>
-            <input type="number" name="fats" placeholder="Fats(g)"><br>
-            <input type="number" name="carbs" placeholder="Carbs(g)"><br>
 
-            <button type="submit">Add</button>
-        </form>
+        {% if success %}
+            <p class="success">✅ Food entry added successfully!</p>
         <a href="{{ url_for('dashboard') }}">
-            <button type="button">Back to Dashboard</button>
+            <button type="button">Return to Dashboard</button>
         </a>
+        {% else %}
+        <form method="POST" action = "/add-food-entry">
+            <label for="foodname">Food Name:</label>
+            <input type="text" name="foodname" id="foodname" required>
+
+            <label for="calories">Calories:</label>
+            <input type="number" name="calories" id="calories" required>
+
+            <label for="fats">Fats (g):</label>
+            <input type="number" name="fats" id="fats" required>
+
+            <label for="carbs">Carbs (g):</label>
+            <input type="number" name="carbs" id="carbs" required>
+
+            <label for="proteins">Proteins (g):</label>
+            <input type="number" name="proteins" id="proteins" required>
+
+            <button type="submit">Add Food</button>
+        </form>
+        {% endif %}
     </div>
 </body>
 </html>
