@@ -1,9 +1,8 @@
-<!-- templates/weightLog.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Food Log</title>
+    <title>Weight Log</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,22 +17,40 @@
             background-color: white;
             padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
         }
         h2 {
-            text-align: center;
             margin-bottom: 20px;
             color: #333;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
         th, td {
-            padding: 10px;
+            padding: 10px 8px;
             border: 1px solid #ccc;
             text-align: center;
+            font-size: 15px;
+        }
+        th {
+            background-color: #f7f7f7;
+            color: #555;
+        }
+        .back-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .back-btn:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -43,16 +60,18 @@
         <table>
             <tr>
                 <th>Date</th>
-                <th>Weight</th>
+                <th>Weight (lbs)</th>
             </tr>
-
-
-
-
-            
+            {% for item in entries %}
+            <tr>
+                <td>{{ item.date }}</td>
+                <td>{{ item.weight }}</td>
+            </tr>
+            {% endfor %}
         </table>
+
         <a href="{{ url_for('dashboard') }}">
-            <button type="button">Back to Dashboard</button>
+            <button class="back-btn">Back to Dashboard</button>
         </a>
     </div>
 </body>
