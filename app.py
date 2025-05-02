@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-#from models import db, User, Authentication, WeightLog, FoodLog, FoodEntry, CaloricPlan
 from models import db, User, Authentication, WeightLog, FoodLog, FoodEntry, CaloricPlan
+from sqlalchemy import text
+from datetime import date
 from sqlalchemy import text
 
 from datetime import datetime
@@ -49,7 +50,7 @@ def signup():
             startingweight=0.0,
             currentweight=0.0,
             goalweight=0.0,
-            age = None,
+            age = 0,
             gender = 'none',
         )
         db.session.add(new_user)
@@ -145,6 +146,8 @@ def settings():
                     SET name = :name,
                         email = :email,
                         height = :height,
+                        age = :age,
+                        gender = :gender,
                         startingWeight = :startingWeight,
                         currentWeight = :currentWeight,
                         goalWeight = :goalWeight
@@ -154,6 +157,8 @@ def settings():
                     "name": request.form['name'],
                     "email": request.form['email'],
                     "height": int(request.form['height']),
+                    "age": int(request.form['age']),
+                    "gender": request.form['gender'],
                     "startingWeight": float(request.form['startingWeight']),
                     "currentWeight": float(request.form['currentWeight']),
                     "goalWeight": float(request.form['goalWeight']),
@@ -172,7 +177,7 @@ def settings():
         except Exception as e:
             return f"Error updating settings: {str(e)}"
 
-    # GET: fetch user data
+    # fetch user data from the query
     user = db.session.execute(
         text('SELECT * FROM "User" WHERE userID = :uid'),
         {"uid": uid}
@@ -182,7 +187,7 @@ def settings():
 
 
 
-@app.route('/add-weight-log', methods=['GET', 'POST'])
+@app.route('/add-weight-entry', methods=['GET', 'POST'])
 def add_weight_log():
 
     if 'userid' not in session:
@@ -198,16 +203,25 @@ def add_weight_log():
             )
             db.session.add(new_log)
             db.session.commit()
-            #return redirect(url_for('dashboard'))
-            #return redirect(url_for('dashboard'))
             return render_template('weightEntry.html', success = True)
         except Exception as e:
             return f"Error adding weight log: {str(e)}"
-
+        
     return render_template('weightEntry.html')
 
-from datetime import date
-from sqlalchemy import text
+@app.route('/weightlog', methods=['GET', 'POST'])
+def weightlog():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    uid = session['userid']
+
+    entries = db.session.execute(
+        text('SELECT * FROM "weightlog" WHERE userID = :uid ORDER BY date DESC'),
+        {"uid": uid}
+    ).fetchall()
+
+    return render_template('weightlog.html', entries=entries)
 
 @app.route('/add-food-entry', methods=['GET', 'POST'])
 def add_food_entry():
@@ -255,13 +269,31 @@ def add_food_entry():
                 VALUES (:eid, :name, :date, :cal, :fat, :carb, :pro)
             """),
             {
-                "eid": entryid,
-                "name": foodname,
-                "date": today,
+            "eid": entryid,
+            "name": foodname,
+            "date": today,
+            "cal": calories,
+            "fat": fats,
+            "carb": carbs,
+            "pro": proteins
+            }
+        )
+        #  Update FoodLog totals
+        db.session.execute(
+            text("""
+                UPDATE "foodlog"
+                SET totalCalories = totalCalories + :cal,
+                    totalFats = totalFats + :fat,
+                    totalCarbs = totalCarbs + :carb,
+                    totalProteins = totalProteins + :pro
+                WHERE entryid = :eid
+            """),
+            {
                 "cal": calories,
                 "fat": fats,
                 "carb": carbs,
-                "pro": proteins
+                "pro": proteins,
+                "eid": entryid
             }
         )
 
@@ -271,7 +303,148 @@ def add_food_entry():
     return render_template("foodEntry.html")
 
 
+@app.route('/foodlog', methods=['GET', 'POST'])
+def foodlog():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
 
+    uid = session['userid']
+    today = date.today()
+
+    # Get today's food entries for the user
+    entries = db.session.execute(
+        text("""
+            SELECT fe.*
+            FROM "foodentry" fe
+            JOIN "foodlog" fl ON fe.entryid = fl.entryid
+            WHERE fl.userid = :uid AND fl.date = :today
+        """),
+        {"uid": uid, "today": today}
+    ).fetchall()
+
+    # Get like total macros and calories for day 
+    totals = db.session.execute(
+        text("""
+            SELECT 
+                SUM(calories) AS total_calories,
+                SUM(proteins) AS total_proteins,
+                SUM(fats) AS total_fats,
+                SUM(carbs) AS total_carbs
+            FROM "foodentry" fe
+            JOIN "foodlog" fl ON fe.entryid = fl.entryid
+            WHERE fl.userid = :uid AND fl.date = :today
+        """),
+        {"uid": uid, "today": today}
+    ).fetchone()
+    
+    return render_template("foodLog.html", food_entries=entries, totals=totals)
+
+@app.route('/caloricPlan', methods=['GET', 'POST'])
+def caloric_plan():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    uid = session['userid']
+
+    if request.method == 'POST':
+        goal = request.form['goal']
+        weekly_diff = float(request.form['weekly_diff'])
+
+        # Step 1: Fetch user details
+        user = db.session.execute(
+            text("""
+                SELECT height, currentWeight, gender, age
+                FROM "User"
+                WHERE userID = :uid
+            """),
+            {"uid": uid}
+        ).fetchone()
+
+        height = user.height
+        weight = user.currentweight
+        gender = user.gender
+        age = user.age
+
+        #  Calculate BMR (got from web)
+        if gender == "Male":
+            bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+        else:
+            bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
+
+        #alories based on goal
+        calorie_adjustment = (weekly_diff * 3500) / 7
+
+        if goal == "Lose":
+            recommended = int(bmr - calorie_adjustment)
+        elif goal == "Gain":
+            recommended = int(bmr + calorie_adjustment)
+        else:
+            recommended = int(bmr)
+
+        # Step 4: Calculate recommended macros
+        rec_protein = int((recommended * 0.25) / 4)   # 4 kcal/g
+        rec_carbs = int((recommended * 0.50) / 4)     # 4 kcal/g
+        rec_fats = int((recommended * 0.25) / 9)      # 9 kcal/g
+
+        # Step 5: Check if CaloricPlan exists
+        plan = db.session.execute(
+            text("SELECT * FROM \"caloricplan\" WHERE userID = :uid"),
+            {"uid": uid}
+        ).fetchone()
+
+        if plan:
+            # Update existing plan
+            db.session.execute(
+                text("""
+                    UPDATE "caloricplan"
+                    SET recCalories = :cal,
+                        recProtein = :pro,
+                        recCarbs = :carb,
+                        recFats = :fat,
+                        goalType = :goal
+                    WHERE userID = :uid
+                """),
+                {
+                    "cal": recommended,
+                    "pro": rec_protein,
+                    "carb": rec_carbs,
+                    "fat": rec_fats,
+                    "goal": goal,
+                    "uid": uid
+                }
+            )
+        else:
+            # Insert new plan
+            db.session.execute(
+                text("""
+                    INSERT INTO "caloricplan"(userID, recCalories, recProtein, recCarbs, recFats, goalType)
+                    VALUES (:uid, :cal, :pro, :carb, :fat, :goal)
+                """),
+                {
+                "uid": uid,
+                "cal": recommended,
+                "pro": rec_protein,
+                "carb": rec_carbs,
+                "fat": rec_fats,
+                "goal": goal
+                }
+            )
+
+        db.session.commit()
+
+        return render_template(
+    'caloricPlan.html',
+    success=True,
+    recommended=recommended,
+    carbs=rec_carbs,
+    protein=rec_protein,
+    fats=rec_fats
+)
+
+    return render_template('caloricPlan.html')
+
+
+    
 
 if __name__ == '__main__':
     with app.app_context():
