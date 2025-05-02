@@ -5,51 +5,70 @@
 <meta charset="UTF-8">
 <title>Statistics</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px;
-    margin: 0;
-}
-.container {
-    background-color: white;
-    padding: 30px 40px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 700px;
-}
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 30px;
-}
-th, td {
-    border: 1px solid #ccc;
-    text-align: center;
-    padding: 10px;
-    font-size: 14px;
-}
-.charts {
-    display: flex;
-    justify-content: space-between;
-}
-.chart {
-    width: 45%;
-    text-align: center;
-}
-.chart img {
-    width: 100%;
-    max-height: 200px;
-    object-fit: contain;
-}
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px;
+        margin: 0;
+    }
+    .container {
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        width: 700px;
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+    th, td {
+        border: 1px solid #aaa;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+    }
+    .charts {
+        display: flex;
+        justify-content: space-between;
+    }
+    .chart {
+        width: 45%;
+        text-align: center;
+    }
+    .chart img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+    .container {
+    width: 90%;
+    max-width: 1100px;
+    }
+
+    .back-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .back-btn:hover {
+        background-color: #45a049;
+    }
 </style>
 </head>
 <body>
@@ -67,24 +86,21 @@ th, td {
                 <td>{{ caloric_average }}</td>
                 <td>{{ weight_change_per_week }}</td>
                 <td>{{ new_recommended_calories }}</td>
+            </tr>
         </table>
         <div class="charts">
             <div class="chart">
                 <h3>Weight Trend</h3>
-
-
+                <img src="{{ url_for('weight_chart') }}" alt="Weight Trend Chart">
             </div>
             <div class="chart">
                 <h3>Caloric Trend</h3>
-
-                
-            </div>
+                <img src="{{ url_for('caloric_chart') }}" alt="Caloric Trend">
+            </div>            
         </div>
         <a href="{{ url_for('dashboard') }}">
-            <button type="button">Back to Dashboard</button>        
-            <a href="{{ url_for('dashboard') }}">
-                <button type="button">Back to Dashboard</button>
-            </a>
+            <button type="button" class="back-btn">Back to Dashboard</button>
+        </a>
     </div>
 </body>
 </html>

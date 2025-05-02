@@ -5,6 +5,12 @@ from sqlalchemy import text
 from datetime import date
 from sqlalchemy import text
 
+import matplotlib
+matplotlib.use('Agg')  # <-- Add this line
+import matplotlib.pyplot as plt
+from flask import send_file
+import io
+
 from datetime import datetime
 import random
 
@@ -444,11 +450,106 @@ def caloric_plan():
     return render_template('caloricPlan.html')
 
 
+@app.route('/statistics')
+def statistics():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    uid = session['userid']
+
+    # 1. Get weight logs
+    weights = db.session.execute(
+        text('SELECT weight, date FROM weightlog WHERE userID = :uid ORDER BY date ASC'),
+        {"uid": uid}
+    ).fetchall()
+
+    if len(weights) >= 2:
+        total_weight_change = round(weights[-1].weight - weights[0].weight, 2)
+        days = (weights[-1].date - weights[0].date).days
+        weight_change_per_week = round(total_weight_change / (days / 7), 2) if days > 0 else "N/A"
+    else:
+        total_weight_change = "N/A"
+        weight_change_per_week = "N/A"
+
+    # 2. Get caloric average
+    food_logs = db.session.execute(
+        text('SELECT totalcalories FROM foodlog WHERE userID = :uid AND totalcalories IS NOT NULL'),
+        {"uid": uid}
+    ).fetchall()
+
+    if food_logs:
+        total_calories = sum(log.totalcalories for log in food_logs)
+        caloric_average = round(total_calories / len(food_logs), 2)
+    else:
+        caloric_average = "N/A"
+
+    # 3. Get recommended calories from caloricPlan
+    plan = db.session.execute(
+        text('SELECT recCalories FROM caloricplan WHERE userID = :uid'),
+        {"uid": uid}
+    ).fetchone()
+
+    new_recommended_calories = plan.reccalories if plan else "N/A"
+
+    return render_template(
+        'statistics.html',
+        total_weight_change=total_weight_change,
+        caloric_average=caloric_average,
+        weight_change_per_week=weight_change_per_week,
+        new_recommended_calories=new_recommended_calories
+    )
+    
+@app.route('/weight_chart.png')
+def weight_chart():
+    if 'userid' not in session:
+        return redirect(url_for('login'))
+
+    weights = WeightLog.query.filter_by(userid=session['userid']).order_by(WeightLog.date).all()
+    if not weights:
+        return '', 204
+
+    dates = [log.date for log in weights]
+    values = [log.weight for log in weights]
+
+    plt.figure(figsize=(10, 5), dpi=100)  # Wider and clearer
+    plt.plot(dates, values, marker='o', color='blue')
+    plt.title("Weight Trend")
+    plt.xlabel("Date")
+    plt.ylabel("Weight (kg)")
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close()
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
+@app.route('/caloric_chart.png')
+def caloric_chart():
+    uid = session.get('userid')
+
+    logs = FoodLog.query.filter_by(userid=uid).order_by(FoodLog.date).all()
+    dates = [log.date.strftime('%m-%d') for log in logs]
+    calories = [log.totalcalories for log in logs]
+
+    plt.figure(figsize=(10, 5), dpi=100)  # Wider and clearer
+    plt.bar(dates, calories, color='orange', width=0.4)  # width reduced from default 0.8 to 0.4
+    plt.title("Caloric Intake Over Time")
+    plt.xlabel("Date")
+    plt.ylabel("Calories")
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close()
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
+
     
 
 if __name__ == '__main__':
     with app.app_context():
         test_database_conc()
     app.run(debug=True)
-
 
