@@ -12,6 +12,7 @@ from flask import send_file
 from chart_cache import generate_cache_key, is_cache_valid, update_cache_file
 import matplotlib.dates as mdates
 import io
+import os
 
 from datetime import datetime
 import random
@@ -534,10 +535,20 @@ def weight_chart():
 @app.route('/caloric_chart.png')
 def caloric_chart():
     uid = session.get('userid')
-    logs = FoodLog.query.filter_by(userid=uid).order_by(FoodLog.date).all()
 
-    values = [log.totalcalories or 0 for log in logs]
-    keys = list(range(1, len(values)+1))  # index for chart
+    # Fetch individual food entries linked to this user
+    entries = db.session.execute(
+        text("""
+            SELECT fe.calories
+            FROM foodentry fe
+            JOIN foodlog fl ON fe.entryid = fl.entryid
+            WHERE fl.userid = :uid
+            ORDER BY fe.date
+        """), {"uid": uid}
+    ).fetchall()
+
+    values = [row.calories or 0 for row in entries]
+    keys = list(range(1, len(values) + 1))
     key = generate_cache_key(values)
 
     img_path = f"static/caloric_chart_{uid}.png"
@@ -545,19 +556,18 @@ def caloric_chart():
 
     if not is_cache_valid(cache_path, key):
         plt.figure(figsize=(8, 5))
-        plt.bar(keys, values, width=0.6, color='green')
-        plt.title("Caloric Intake Trend")
+        plt.plot(keys, values, marker='o', linestyle='-', color='green')
+        plt.title("Caloric Intake Trend (Per Food Item)")
         plt.xlabel("Entry #")
         plt.ylabel("Calories")
         plt.xticks(keys)
+        plt.grid(True)
         plt.tight_layout()
         plt.savefig(img_path)
         plt.close()
         update_cache_file(cache_path, key)
 
     return send_file(img_path, mimetype='image/png')
-
-
 
 
 if __name__ == '__main__':
