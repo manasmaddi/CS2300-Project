@@ -536,31 +536,36 @@ def weight_chart():
 def caloric_chart():
     uid = session.get('userid')
 
-    # Fetch individual food entries linked to this user
-    entries = db.session.execute(
+    # Group total calories by date
+    result = db.session.execute(
         text("""
-            SELECT fe.calories
+            SELECT fl.date, SUM(fe.calories) AS total
             FROM foodentry fe
             JOIN foodlog fl ON fe.entryid = fl.entryid
             WHERE fl.userid = :uid
-            ORDER BY fe.date
+            GROUP BY fl.date
+            ORDER BY fl.date
         """), {"uid": uid}
     ).fetchall()
 
-    values = [row.calories or 0 for row in entries]
-    keys = list(range(1, len(values) + 1))
-    key = generate_cache_key(values)
+    if not result:
+        # Handle no data scenario gracefully
+        return "No data to generate chart", 404
 
+    dates = [row.date.strftime('%Y-%m-%d') for row in result]
+    totals = [row.total for row in result]
+
+    key = generate_cache_key(totals)
     img_path = f"static/caloric_chart_{uid}.png"
     cache_path = f"static/caloric_chart_{uid}.key"
 
     if not is_cache_valid(cache_path, key):
         plt.figure(figsize=(8, 5))
-        plt.plot(keys, values, marker='o', linestyle='-', color='green')
-        plt.title("Caloric Intake Trend (Per Food Item)")
-        plt.xlabel("Entry #")
+        plt.plot(dates, totals, marker='o', linestyle='-', color='orange')
+        plt.title("Daily Total Caloric Intake")
+        plt.xlabel("Date")
         plt.ylabel("Calories")
-        plt.xticks(keys)
+        plt.xticks(rotation=45)
         plt.grid(True)
         plt.tight_layout()
         plt.savefig(img_path)
