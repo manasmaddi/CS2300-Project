@@ -149,14 +149,15 @@ def settings():
 
     uid = session['userid']
 
+#updating the user info
     if request.method == 'POST':
         try:
             db.session.execute(
                 text("""
                     UPDATE "User"
                     SET name = :name,
-                        email = :email,
-                        height = :height,
+                    email = :email,
+                    height = :height,
                         age = :age,
                         gender = :gender,
                         startingWeight = :startingWeight,
@@ -195,7 +196,6 @@ def settings():
     ).fetchone()
 
     return render_template('settings.html', user=user)
-
 
 
 @app.route('/add-weight-entry', methods=['GET', 'POST'])
@@ -243,14 +243,14 @@ def add_food_entry():
     today = date.today()
 
     if request.method == 'POST':
-        # 1. Get form values
+        #  Get form values from the html file
         foodname = request.form['foodname']
         calories = int(request.form['calories'])
         fats = int(request.form['fats'])
         carbs = int(request.form['carbs'])
         proteins = int(request.form['proteins'])
 
-        # 2. Check if FoodLog exists
+        #  Check if FoodLog exists 
         result = db.session.execute(
             text("""
                 SELECT entryid FROM "foodlog"
@@ -262,7 +262,7 @@ def add_food_entry():
         if result:
             entryid = result.entryid
         else:
-            # 3. Insert new FoodLog for today
+            #  if not insert new FoodLog for today
             new_log = db.session.execute(
                 text("""
                     INSERT INTO "foodlog"(userid, date)
@@ -273,7 +273,7 @@ def add_food_entry():
             )
             entryid = new_log.fetchone().entryid
 
-        # 4. Insert food into FoodEntry
+        #  Insert food into FoodEntry
         db.session.execute(
             text("""
                 INSERT INTO "foodentry"(entryid, foodname, date, calories, fats, carbs, proteins)
@@ -289,7 +289,7 @@ def add_food_entry():
             "pro": proteins
             }
         )
-        #  Update FoodLog totals
+        #  Update FoodLog totals in the foodlog table
         db.session.execute(
             text("""
                 UPDATE "foodlog"
@@ -322,7 +322,7 @@ def foodlog():
     uid = session['userid']
     today = date.today()
 
-    # Get today's food entries for the user
+    #  Get today's food entries for the user
     entries = db.session.execute(
         text("""
             SELECT fe.*
@@ -333,7 +333,7 @@ def foodlog():
         {"uid": uid, "today": today}
     ).fetchall()
 
-    # Get like total macros and calories for day 
+    #  Get today's total macros
     totals = db.session.execute(
         text("""
             SELECT 
@@ -347,8 +347,24 @@ def foodlog():
         """),
         {"uid": uid, "today": today}
     ).fetchone()
-    
-    return render_template("foodLog.html", food_entries=entries, totals=totals)
+
+    # get user's recommended caloric plan from caloric plan
+    recommended = db.session.execute(
+        text("""
+            SELECT reccalories, recprotein, reccarbs, recfats
+            FROM "caloricplan"
+            WHERE userid = :uid
+        """),
+        {"uid": uid}
+    ).fetchone()
+
+    return render_template(
+        "foodLog.html",
+        food_entries=entries,
+        totals=totals,
+        recommended=recommended
+    )
+
 
 @app.route('/caloricPlan', methods=['GET', 'POST'])
 def caloric_plan():
@@ -361,7 +377,7 @@ def caloric_plan():
         goal = request.form['goal']
         weekly_diff = float(request.form['weekly_diff'])
 
-        # Step 1: Fetch user details
+        #  Fetch user details
         user = db.session.execute(
             text("""
                 SELECT height, currentWeight, gender, age
@@ -392,12 +408,12 @@ def caloric_plan():
         else:
             recommended = int(bmr)
 
-        # Step 4: Calculate recommended macros
-        rec_protein = int((recommended * 0.25) / 4)   # 4 kcal/g
-        rec_carbs = int((recommended * 0.50) / 4)     # 4 kcal/g
-        rec_fats = int((recommended * 0.25) / 9)      # 9 kcal/g
+        #  Calculate recommended macros
+        rec_protein = int((recommended * 0.25) / 4)   # 4 kcal/g, from web
+        rec_carbs = int((recommended * 0.50) / 4)     # 4 kcal/g, from web
+        rec_fats = int((recommended * 0.25) / 9)      # 9 kcal/g, from web
 
-        # Step 5: Check if CaloricPlan exists
+        #  Check if CaloricPlan exists
         plan = db.session.execute(
             text("SELECT * FROM \"caloricplan\" WHERE userID = :uid"),
             {"uid": uid}
@@ -453,6 +469,7 @@ def caloric_plan():
 )
 
     return render_template('caloricPlan.html')
+
 
 
 @app.route('/statistics')

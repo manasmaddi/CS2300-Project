@@ -53,8 +53,25 @@
             font-size: 14px;
             color: #444;
         }
-        .back-btn {
+        .recommended {
             margin-top: 20px;
+            text-align: left;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        .recommended h3 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .recommended p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .back-btn {
+            margin-top: 25px;
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -78,7 +95,6 @@
                 <th>Fats (g)</th>
                 <th>Carbohydrates (g)</th>
             </tr>
-
             {% for item in food_entries %}
             <tr>
                 <td>{{ item.foodname }}</td>
@@ -98,8 +114,18 @@
             <p><strong>Total Carbohydrates:</strong> {{ totals.total_carbs or 0 }} g</p>
         </div>
 
+        {% if recommended %}
+        <div class="recommended">
+            <h3>Recommended Daily Intake</h3>
+            <p><strong>Calories:</strong> {{ recommended.reccalories }}</p>
+            <p><strong>Protein:</strong> {{ recommended.recprotein }} g</p>
+            <p><strong>Carbs:</strong> {{ recommended.reccarbs }} g</p>
+            <p><strong>Fats:</strong> {{ recommended.recfats }} g</p>
+        </div>
+        {% endif %}
+
         <a href="{{ url_for('dashboard') }}">
-            <button class="back-btn">Back to Dashboard</button>
+            <button class="back-btn">Return to Dashboard</button>
         </a>
     </div>
 </body>
