@@ -9,6 +9,8 @@ import matplotlib
 matplotlib.use('Agg')  # <-- Add this line
 import matplotlib.pyplot as plt
 from flask import send_file
+from chart_cache import generate_cache_key, is_cache_valid, update_cache_file
+import matplotlib.dates as mdates
 import io
 
 from datetime import datetime
@@ -41,6 +43,8 @@ def signup():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        age = request.form['age']
+        gender = request.form['gender']
 
         user = User.query.filter_by(email=email).first()
         if user:
@@ -56,8 +60,8 @@ def signup():
             startingweight=0.0,
             currentweight=0.0,
             goalweight=0.0,
-            age = 0,
-            gender = 'none',
+            age = age,
+            gender = gender,
         )
         db.session.add(new_user)
         db.session.commit()
@@ -501,55 +505,63 @@ def statistics():
     
 @app.route('/weight_chart.png')
 def weight_chart():
-    if 'userid' not in session:
-        return redirect(url_for('login'))
-
-    weights = WeightLog.query.filter_by(userid=session['userid']).order_by(WeightLog.date).all()
-    if not weights:
-        return '', 204
+    uid = session.get('userid')
+    weights = WeightLog.query.filter_by(userid=uid).order_by(WeightLog.date).all()
 
     dates = [log.date for log in weights]
     values = [log.weight for log in weights]
 
-    plt.figure(figsize=(10, 5), dpi=100)  # Wider and clearer
-    plt.plot(dates, values, marker='o', color='blue')
-    plt.title("Weight Trend")
-    plt.xlabel("Date")
-    plt.ylabel("Weight (kg)")
-    plt.tight_layout()
+    key = generate_cache_key(dates + values)
+    img_path = f"static/weight_chart_{uid}.png"
+    cache_path = f"static/weight_chart_{uid}.key"
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    plt.close()
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+    if not is_cache_valid(cache_path, key):
+        # Generate chart
+        plt.figure(figsize=(8, 5))
+        plt.plot(dates, values, marker='o', linestyle='-', color='blue')
+        plt.title("Weight Tracking Over Time")
+        plt.xlabel("Date")
+        plt.ylabel("Weight (kg)")
+        plt.xticks(rotation=45)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        plt.tight_layout()
+        plt.savefig(img_path)
+        plt.close()
+        update_cache_file(cache_path, key)
+
+    return send_file(img_path, mimetype='image/png')
 
 @app.route('/caloric_chart.png')
 def caloric_chart():
     uid = session.get('userid')
-
     logs = FoodLog.query.filter_by(userid=uid).order_by(FoodLog.date).all()
-    dates = [log.date.strftime('%m-%d') for log in logs]
-    calories = [log.totalcalories for log in logs]
 
-    plt.figure(figsize=(10, 5), dpi=100)  # Wider and clearer
-    plt.bar(dates, calories, color='orange', width=0.4)  # width reduced from default 0.8 to 0.4
-    plt.title("Caloric Intake Over Time")
-    plt.xlabel("Date")
-    plt.ylabel("Calories")
-    plt.tight_layout()
+    values = [log.totalcalories or 0 for log in logs]
+    keys = list(range(1, len(values)+1))  # index for chart
+    key = generate_cache_key(values)
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    plt.close()
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+    img_path = f"static/caloric_chart_{uid}.png"
+    cache_path = f"static/caloric_chart_{uid}.key"
+
+    if not is_cache_valid(cache_path, key):
+        plt.figure(figsize=(8, 5))
+        plt.bar(keys, values, width=0.6, color='green')
+        plt.title("Caloric Intake Trend")
+        plt.xlabel("Entry #")
+        plt.ylabel("Calories")
+        plt.xticks(keys)
+        plt.tight_layout()
+        plt.savefig(img_path)
+        plt.close()
+        update_cache_file(cache_path, key)
+
+    return send_file(img_path, mimetype='image/png')
 
 
-    
+
 
 if __name__ == '__main__':
     with app.app_context():
         test_database_conc()
-    app.run(debug=True)
+    app.run(port = 5001,debug=True)
 

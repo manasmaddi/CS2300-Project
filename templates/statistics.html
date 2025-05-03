@@ -55,7 +55,7 @@
     .container {
     width: 90%;
     max-width: 1100px;
-    }
+}
 
     .back-btn {
         margin-top: 20px;
@@ -91,12 +91,12 @@
         <div class="charts">
             <div class="chart">
                 <h3>Weight Trend</h3>
-                <img src="{{ url_for('weight_chart') }}" alt="Weight Trend Chart">
+                <img src="{{ url_for('weight_chart') }}" alt="Weight Chart">
             </div>
             <div class="chart">
                 <h3>Caloric Trend</h3>
-                <img src="{{ url_for('caloric_chart') }}" alt="Caloric Trend">
-            </div>            
+                <img src="{{ url_for('caloric_chart') }}" alt="Caloric Chart">
+            </div>           
         </div>
         <a href="{{ url_for('dashboard') }}">
             <button type="button" class="back-btn">Back to Dashboard</button>
