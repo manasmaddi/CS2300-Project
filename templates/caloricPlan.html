@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Food Log</title>
+    <title>Caloric Plan</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,115 +17,96 @@
             background-color: white;
             padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 550px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
             text-align: center;
         }
         h2 {
             margin-bottom: 20px;
-            color: #333;
+            color: #000000;
         }
-        table {
+        label {
+            font-size: 16px;
+            color: #000000;
+            text-align: left;
+            display: block;
+        }
+        input[type="text"],
+        input[type="float"],
+        input[type="range"],
+        button {
             width: 100%;
-            border-collapse: collapse;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .metrics {
+            background-color: #e7f7e7;
+            border: 1px solid #b0e1b0;
+            border-radius: 5px;
+            padding: 10px;
             margin-top: 15px;
         }
-        th, td {
-            padding: 12px 8px;
-            border: 1px solid #ccc;
-            text-align: center;
-            font-size: 15px;
-        }
-        th {
-            background-color: #f7f7f7;
-            color: #555;
-        }
-        .summary {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .summary h3 {
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .summary p {
-            margin: 4px 0;
-            font-size: 14px;
-            color: #444;
-        }
-        .recommended {
-            margin-top: 20px;
-            text-align: left;
-            background-color: #f9f9f9;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-        }
-        .recommended h3 {
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .recommended p {
-            margin: 4px 0;
-            font-size: 14px;
-            color: #555;
-        }
-        .back-btn {
-            margin-top: 25px;
-            padding: 10px 20px;
+        .dashboard-btn {
             background-color: #4CAF50;
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
             color: white;
             border: none;
             border-radius: 6px;
+            font-size: 16px;
             cursor: pointer;
         }
-        .back-btn:hover {
-            background-color: #45a049;
+        .dashboard-btn:hover {
+            background-color: #388e3c;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Food Log</h2>
-        <table>
-            <tr>
-                <th>Food</th>
-                <th>Calories</th>
-                <th>Protein (g)</th>
-                <th>Fats (g)</th>
-                <th>Carbohydrates (g)</th>
-            </tr>
-            {% for item in food_entries %}
-            <tr>
-                <td>{{ item.foodname }}</td>
-                <td>{{ item.calories }}</td>
-                <td>{{ item.proteins }}</td>
-                <td>{{ item.fats }}</td>
-                <td>{{ item.carbs }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>Caloric Plan</h2>
 
-        <div class="summary">
-            <h3>Daily Totals</h3>
-            <p><strong>Total Calories:</strong> {{ totals.total_calories or 0 }}</p>
-            <p><strong>Total Protein:</strong> {{ totals.total_proteins or 0 }} g</p>
-            <p><strong>Total Fats:</strong> {{ totals.total_fats or 0 }} g</p>
-            <p><strong>Total Carbohydrates:</strong> {{ totals.total_carbs or 0 }} g</p>
-        </div>
-
-        {% if recommended %}
-        <div class="recommended">
-            <h3>Recommended Daily Intake</h3>
-            <p><strong>Calories:</strong> {{ recommended.reccalories }}</p>
-            <p><strong>Protein:</strong> {{ recommended.recprotein }} g</p>
-            <p><strong>Carbs:</strong> {{ recommended.reccarbs }} g</p>
-            <p><strong>Fats:</strong> {{ recommended.recfats }} g</p>
-        </div>
+        {% if success %}
+            <div class="metrics">
+                <p><strong>✅ Your Recommended Daily Plan:</strong></p>
+                <p>Calories: {{ recommended }} kcal</p>
+                <p>Carbs: {{ carbs }} g</p>
+                <p>Protein: {{ protein }} g</p>
+                <p>Fats: {{ fats }} g</p>
+            </div>
         {% endif %}
 
+        <form method="POST">
+            <label>Goal:</label>
+            <div>
+                <input type="radio" name="goal" value="Lose"> Lose
+                <input type="radio" name="goal" value="Gain"> Gain
+                <input type="radio" name="goal" value="Maintain"> Maintain
+            </div>
+
+            <input type="float" name="goal_weight" placeholder="Goal Weight (lbs)" required>
+
+            <label for="weekly_diff">Weight (lb) Difference Per Week:</label>
+            <span id="rangeValue">1.2</span> lb/week
+            <input type="range" id="weekly_diff" name="weekly_diff" min="0" max="2.5" step="0.1" required oninput="rangeValue.innerText = this.value">
+
+            <button type="submit">Set Plan</button>
+        </form>
+
         <a href="{{ url_for('dashboard') }}">
-            <button class="back-btn">Return to Dashboard</button>
+            <button class="dashboard-btn">Return to Dashboard</button>
         </a>
     </div>
 </body>

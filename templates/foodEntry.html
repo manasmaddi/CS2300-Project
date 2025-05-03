@@ -62,9 +62,6 @@
 
         {% if success %}
             <p class="success">✅ Food entry added successfully!</p>
-        <a href="{{ url_for('dashboard') }}">
-            <button type="button">Return to Dashboard</button>
-        </a>
         {% else %}
         <form method="POST" action = "/add-food-entry">
             <label for="foodname">Food Name:</label>

@@ -67,9 +67,6 @@
 
         {% if success %}
             <p class="success">✅ Weight logged successfully!</p>
-            <a href="{{ url_for('dashboard') }}">
-                <button type="button">Return to Dashboard</button>
-            </a>
         {% else %}
             <form method="POST" action="/add-weight-entry">
                 <label>Date:</label>
