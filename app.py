@@ -548,9 +548,15 @@ def caloric_chart():
         """), {"uid": uid}
     ).fetchall()
 
-    if not result:
-        # Handle no data scenario gracefully
-        return "No data to generate chart", 404
+    if not result or len(result) == 0:
+        # Return a default blank chart or image saying "No data yet"
+        plt.figure(figsize=(8, 4))
+        plt.text(0.5, 0.5, 'No calorie data yet', fontsize=14, ha='center')
+        plt.axis('off')
+        img_path = f"static/caloric_chart_{uid}_blank.png"
+        plt.savefig(img_path)
+        plt.close()
+        return send_file(img_path, mimetype='image/png')
 
     dates = [row.date.strftime('%Y-%m-%d') for row in result]
     totals = [row.total for row in result]
@@ -560,7 +566,7 @@ def caloric_chart():
     cache_path = f"static/caloric_chart_{uid}.key"
 
     if not is_cache_valid(cache_path, key):
-        plt.figure(figsize=(8, 5))
+        plt.figure(figsize=(9, 5))
         plt.plot(dates, totals, marker='o', linestyle='-', color='orange')
         plt.title("Daily Total Caloric Intake")
         plt.xlabel("Date")
