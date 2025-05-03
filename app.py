@@ -149,15 +149,14 @@ def settings():
 
     uid = session['userid']
 
-#updating the user info
     if request.method == 'POST':
         try:
             db.session.execute(
                 text("""
                     UPDATE "User"
                     SET name = :name,
-                    email = :email,
-                    height = :height,
+                        email = :email,
+                        height = :height,
                         age = :age,
                         gender = :gender,
                         startingWeight = :startingWeight,
@@ -196,6 +195,7 @@ def settings():
     ).fetchone()
 
     return render_template('settings.html', user=user)
+
 
 
 @app.route('/add-weight-entry', methods=['GET', 'POST'])
@@ -243,14 +243,14 @@ def add_food_entry():
     today = date.today()
 
     if request.method == 'POST':
-        #  Get form values from the html file
+        # 1. Get form values
         foodname = request.form['foodname']
         calories = int(request.form['calories'])
         fats = int(request.form['fats'])
         carbs = int(request.form['carbs'])
         proteins = int(request.form['proteins'])
 
-        #  Check if FoodLog exists 
+        # 2. Check if FoodLog exists
         result = db.session.execute(
             text("""
                 SELECT entryid FROM "foodlog"
@@ -262,7 +262,7 @@ def add_food_entry():
         if result:
             entryid = result.entryid
         else:
-            #  if not insert new FoodLog for today
+            # 3. Insert new FoodLog for today
             new_log = db.session.execute(
                 text("""
                     INSERT INTO "foodlog"(userid, date)
@@ -273,7 +273,7 @@ def add_food_entry():
             )
             entryid = new_log.fetchone().entryid
 
-        #  Insert food into FoodEntry
+        # 4. Insert food into FoodEntry
         db.session.execute(
             text("""
                 INSERT INTO "foodentry"(entryid, foodname, date, calories, fats, carbs, proteins)
@@ -289,7 +289,7 @@ def add_food_entry():
             "pro": proteins
             }
         )
-        #  Update FoodLog totals in the foodlog table
+        #  Update FoodLog totals
         db.session.execute(
             text("""
                 UPDATE "foodlog"
@@ -322,7 +322,7 @@ def foodlog():
     uid = session['userid']
     today = date.today()
 
-    #  Get today's food entries for the user
+    # Get today's food entries for the user
     entries = db.session.execute(
         text("""
             SELECT fe.*
@@ -333,7 +333,7 @@ def foodlog():
         {"uid": uid, "today": today}
     ).fetchall()
 
-    #  Get today's total macros
+    # Get like total macros and calories for day 
     totals = db.session.execute(
         text("""
             SELECT 
@@ -347,24 +347,8 @@ def foodlog():
         """),
         {"uid": uid, "today": today}
     ).fetchone()
-
-    # get user's recommended caloric plan from caloric plan
-    recommended = db.session.execute(
-        text("""
-            SELECT reccalories, recprotein, reccarbs, recfats
-            FROM "caloricplan"
-            WHERE userid = :uid
-        """),
-        {"uid": uid}
-    ).fetchone()
-
-    return render_template(
-        "foodLog.html",
-        food_entries=entries,
-        totals=totals,
-        recommended=recommended
-    )
-
+    
+    return render_template("foodLog.html", food_entries=entries, totals=totals)
 
 @app.route('/caloricPlan', methods=['GET', 'POST'])
 def caloric_plan():
@@ -377,7 +361,7 @@ def caloric_plan():
         goal = request.form['goal']
         weekly_diff = float(request.form['weekly_diff'])
 
-        #  Fetch user details
+        # Step 1: Fetch user details
         user = db.session.execute(
             text("""
                 SELECT height, currentWeight, gender, age
@@ -408,12 +392,12 @@ def caloric_plan():
         else:
             recommended = int(bmr)
 
-        #  Calculate recommended macros
-        rec_protein = int((recommended * 0.25) / 4)   # 4 kcal/g, from web
-        rec_carbs = int((recommended * 0.50) / 4)     # 4 kcal/g, from web
-        rec_fats = int((recommended * 0.25) / 9)      # 9 kcal/g, from web
+        # Step 4: Calculate recommended macros
+        rec_protein = int((recommended * 0.25) / 4)   # 4 kcal/g
+        rec_carbs = int((recommended * 0.50) / 4)     # 4 kcal/g
+        rec_fats = int((recommended * 0.25) / 9)      # 9 kcal/g
 
-        #  Check if CaloricPlan exists
+        # Step 5: Check if CaloricPlan exists
         plan = db.session.execute(
             text("SELECT * FROM \"caloricplan\" WHERE userID = :uid"),
             {"uid": uid}
@@ -471,7 +455,6 @@ def caloric_plan():
     return render_template('caloricPlan.html')
 
 
-
 @app.route('/statistics')
 def statistics():
     if 'userid' not in session:
@@ -517,8 +500,8 @@ def statistics():
         'statistics.html',
         total_weight_change=total_weight_change,
         caloric_average=caloric_average,
-        weight_change_per_week=weight_change_per_week,
-        new_recommended_calories=new_recommended_calories
+        weight_change_per_week = weight_change_per_week,
+        new_recommended_calories = new_recommended_calories
     )
     
 @app.route('/weight_chart.png')
@@ -526,7 +509,18 @@ def weight_chart():
     uid = session.get('userid')
     weights = WeightLog.query.filter_by(userid=uid).order_by(WeightLog.date).all()
 
-    dates = [log.date for log in weights]
+    if not weights or len(weights) == 0:
+        # Return default blank chart
+        plt.figure(figsize=(8, 4))
+        plt.text(0.5, 0.5, 'No weight entries yet.\nLog your weight to track progress.',
+                 fontsize=14, ha='center', va='center')
+        plt.axis('off')
+        img_path = f"static/weight_chart_{uid}_blank.png"
+        plt.savefig(img_path)
+        plt.close()
+        return send_file(img_path, mimetype='image/png')
+
+    dates = [log.date.strftime('%Y-%m-%d') for log in weights]
     values = [log.weight for log in weights]
 
     key = generate_cache_key(dates + values)
@@ -549,6 +543,7 @@ def weight_chart():
 
     return send_file(img_path, mimetype='image/png')
 
+
 @app.route('/caloric_chart.png')
 def caloric_chart():
     uid = session.get('userid')
@@ -566,19 +561,21 @@ def caloric_chart():
     ).fetchall()
 
     if not result or len(result) == 0:
-        # Return a default blank chart or image saying "No data yet"
+        # Return a default blank chart
         plt.figure(figsize=(8, 4))
-        plt.text(0.5, 0.5, 'No calorie data yet', fontsize=14, ha='center')
+        plt.text(0.5, 0.5, 'No calorie data yet.\nAdd food entries to see progress.', 
+                 fontsize=14, ha='center', va='center')
         plt.axis('off')
         img_path = f"static/caloric_chart_{uid}_blank.png"
         plt.savefig(img_path)
         plt.close()
         return send_file(img_path, mimetype='image/png')
 
+    # Normal chart case
     dates = [row.date.strftime('%Y-%m-%d') for row in result]
-    totals = [row.total for row in result]
+    totals = [row.total if row.total is not None else 0 for row in result]  # handle None
 
-    key = generate_cache_key(totals)
+    key = generate_cache_key(dates + totals)
     img_path = f"static/caloric_chart_{uid}.png"
     cache_path = f"static/caloric_chart_{uid}.key"
 
